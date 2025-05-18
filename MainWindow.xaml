@@ -34,7 +34,6 @@
             </ScrollViewer>
         </Border>
 
-        <!-- Delay Adjustment Controls -->
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
@@ -44,18 +43,12 @@
                    VerticalAlignment="Center"
                    Foreground="#333333"
                    FontSize="14"/>
-            <!--
-            <Button x:Name="decreaseDelayBtn"
-                    Content="d-"
-                    Margin="5,0"
+            <Button x:Name="openFileButton"
+                    Content="Open Video &amp; Subtitles"
+                    Margin="10,0,0,0"
                     Padding="8,3"
-                    Click="DecreaseDelay_Click"/>
-            <Button x:Name="increaseDelayBtn"
-                    Content="d+"
-                    Margin="5,0"
-                    Padding="8,3"
-                    Click="IncreaseDelay_Click"/>
-            -->
+                    Click="OpenFileButton_Click"/>
+
         </StackPanel>
     </Grid>
 </Window>

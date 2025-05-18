@@ -60,31 +60,51 @@ namespace SubtitleVideoPlayerWpf
             }
         }
 
+        // Event handler for the new button
+        private void OpenFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Stop current video playback and clear existing data
+            videoElement.Stop();
+            _isPlaying = false;
+            if (_timer != null) // Ensure timer is not null before trying to stop
+            {
+                _timer.Stop();
+            }
+            subtitleText.Text = "";
+            _subtitleData.Clear();
+            _videoPath = null;
+
+            // Call the existing method to prompt for files
+            // This method already contains the OpenFileDialog logic
+            PromptForFiles();
+        }
+
         private void PromptForFiles()
         {
-            MessageBoxResult result = MessageBox.Show("Do you want to load a video and subtitle file?", "Load Files", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
+            // Consider asking the user if they are sure if a video is already loaded and playing.
+            // For simplicity, this version directly proceeds to open files.
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog
-                {
-                    Title = "Select Video File",
-                    Filter = "Video Files|*.mp4;*.avi;*.mkv;*.wmv|All Files|*.*"
-                };
+                Title = "Select Video File",
+                Filter = "Video Files|*.mp4;*.avi;*.mkv;*.wmv|All Files|*.*"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string videoFilePath = openFileDialog.FileName;
+
+                openFileDialog.Title = "Select Subtitle File (SRT)";
+                openFileDialog.Filter = "SRT Files|*.srt|All Files|*.*";
 
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    string videoFilePath = openFileDialog.FileName;
-
-                    openFileDialog.Title = "Select Subtitle File (SRT)";
-                    openFileDialog.Filter = "SRT Files|*.srt|All Files|*.*";
-
-                    if (openFileDialog.ShowDialog() == true)
-                    {
-                        string subtitleFilePath = openFileDialog.FileName;
-                        LoadVideoAndSubtitles(videoFilePath, subtitleFilePath);
-                    }
+                    string subtitleFilePath = openFileDialog.FileName;
+                    LoadVideoAndSubtitles(videoFilePath, subtitleFilePath);
                 }
+                // Optional: Handle case where user selects video but cancels subtitle selection
             }
+            // Optional: Handle case where user cancels video selection
         }
 
         private void LoadVideoAndSubtitles(string videoPath, string subtitlePath)
@@ -133,7 +153,11 @@ namespace SubtitleVideoPlayerWpf
 
             videoElement.Play();
             _isPlaying = true;
-            _timer.Start();
+            if (_timer != null && !_timer.IsEnabled) // Start timer only if it exists and is not already enabled
+            {
+                _timer.Start();
+            }
+
 
             Title = $"{WindowTitle} - {Path.GetFileName(videoPath)}";
             UpdateSubtitleDisplay();
@@ -575,6 +599,8 @@ namespace SubtitleVideoPlayerWpf
             _timer.Stop();
             videoElement.Source = null;
         }
+
+
     }
 
     public class SubtitleSegment
