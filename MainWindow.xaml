@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SubtitleVideoPlayerWpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Background="#AA000000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -23,7 +23,7 @@
                       MediaFailed="MediaElement_MediaFailed"
                       ScrubbingEnabled="True"/>
 
-        <Border Grid.Row="1" Background="#AA000000" Padding="10">
+        <Border Grid.Row="1" Padding="10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Height="200">
                 <TextBox x:Name="subtitleText"
                          Text="Subtitles will appear here."
@@ -49,12 +49,12 @@
             <Label x:Name="delayLabel"
                    Content="Delay: 0 ms"
                    VerticalAlignment="Center"
-                   Foreground="#333333"
+                   Foreground="#FFD1D1D1"
                    FontSize="14"/>
             <Label x:Name="subtitleDurationAdjustLabel"
                    Content="Subtitle Duration: +0s"
                    VerticalAlignment="Center"
-                   Foreground="#333333"
+                   Foreground="#FFD1D1D1"
                    Margin="10,0,0,0"
                    FontSize="14"/>
             <Button x:Name="decreaseDurationButton"
