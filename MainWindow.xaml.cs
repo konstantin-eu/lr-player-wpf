@@ -47,7 +47,8 @@ namespace SubtitleVideoPlayerWpf
             _timer.Tick += Timer_Tick;
             // Timer will be started after files are loaded
 
-            this.KeyDown += MainWindow_KeyDown;
+            // Changed to PreviewKeyDown for more reliable key handling
+            this.PreviewKeyDown += MainWindow_KeyDown;
             this.Closing += Window_Closing;
 
             LoadLastState(); // Attempt to load last video and progress
@@ -58,7 +59,23 @@ namespace SubtitleVideoPlayerWpf
             }
         }
 
-        // Add these methods to the MainWindow class
+        // Handle key events from the TextBox to prevent them from being consumed
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Let Ctrl+C pass through for copy functionality
+            if (e.Key == Key.C && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                return;
+            }
+
+            // For all other navigation keys, mark as handled and let the main window handle them
+            if (e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Space ||
+                e.Key == Key.O || e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                // The main window's PreviewKeyDown will still fire and handle these keys
+            }
+        }
 
         private void UpdateDurationDisplay()
         {
@@ -623,15 +640,19 @@ namespace SubtitleVideoPlayerWpf
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!IsActive || videoElement.Source == null) return; // Only process if window active and video loaded
+            System.Diagnostics.Debug.WriteLine("pressed!");
+
+            if (videoElement.Source == null) return; // Only process if video loaded
 
             if (e.Key == Key.Left)
             {
                 if (_subtitleData.Count > 0) JumpToSegment(Math.Max(0, _currentSubIdx - 1));
+                e.Handled = true; // Mark as handled to prevent further processing
             }
             else if (e.Key == Key.Right)
             {
                 if (_subtitleData.Count > 0) JumpToSegment(Math.Min(_subtitleData.Count - 1, _currentSubIdx + 1));
+                e.Handled = true;
             }
             else if (e.Key == Key.Space)
             {
@@ -652,14 +673,17 @@ namespace SubtitleVideoPlayerWpf
                         _state = "playing_normal";
                 }
                 UpdateSubtitleDisplay(); // Update display for pause/play status
+                e.Handled = true;
             }
             else if (e.Key == Key.O)
             {
                 OpenFileButton_Click(this, new RoutedEventArgs()); // Reuse button click logic
+                e.Handled = true;
             }
             else if (e.Key == Key.Escape)
             {
                 Close();
+                e.Handled = true;
             }
         }
 

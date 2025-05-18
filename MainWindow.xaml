@@ -35,7 +35,10 @@
                          BorderThickness="0"
                          Background="Transparent"
                          SelectionBrush="#AAFFFFFF"
-                         Cursor="IBeam"/>
+                         Cursor="IBeam"
+                         KeyboardNavigation.TabNavigation="None"
+                         KeyboardNavigation.DirectionalNavigation="None"
+                         PreviewKeyDown="TextBox_PreviewKeyDown"/>
             </ScrollViewer>
         </Border>
 
