@@ -1,12 +1,55 @@
 ﻿<Window x:Class="SubtitleVideoPlayerWpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SubtitleVideoPlayerWpf"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Video with External Subtitles" Height="600" Width="800"
+        Closing="Window_Closing">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
+        <!-- Video Player -->
+        <Border Grid.Row="0" 
+                Background="Black">
+            <Viewbox Stretch="Uniform">
+                <Canvas x:Name="videoElement" 
+                        Width="800" 
+                        Height="450" 
+                        Background="Black"/>
+            </Viewbox>
+        </Border>
+
+        <!-- Subtitle Display -->
+        <Border Grid.Row="1" 
+                Background="#B0000000" 
+                Padding="15">
+            <TextBlock x:Name="subtitleTextBlock" 
+                       TextWrapping="Wrap" 
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center" 
+                       Foreground="White"
+                       FontSize="26"
+                       MinHeight="80"/>
+        </Border>
+
+        <!-- Control Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Center" 
+                    Margin="10">
+            <Label x:Name="delayLabel" 
+                   Content="Delay: 0 ms" 
+                   VerticalAlignment="Center"/>
+            <Button Content="d-" 
+                    Click="DecreaseDelay_Click" 
+                    Margin="5,0" 
+                    Padding="10,5"/>
+            <Button Content="d+" 
+                    Click="IncreaseDelay_Click" 
+                    Margin="5,0" 
+                    Padding="10,5"/>
+        </StackPanel>
     </Grid>
 </Window>
