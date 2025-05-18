@@ -51,7 +51,7 @@ namespace SubtitleVideoPlayerWpf
 
             // Set up the media element inside the Canvas
             var hostVisual = new VisualHost { Visual = new MediaVisual(_mediaPlayer) };
-            videoElement.Children.Add(hostVisual);
+            //videoElement.Children.Add(hostVisual);
 
             // Make the visual host fill the canvas
             Canvas.SetLeft(hostVisual, 0);
@@ -115,14 +115,14 @@ namespace SubtitleVideoPlayerWpf
             _isPlaying = true;
 
             // Ensure the video visual has the right dimensions based on the media
-            foreach (var child in videoElement.Children)
-            {
-                if (child is VisualHost host)
-                {
-                    host.Width = _mediaPlayer.NaturalVideoWidth;
-                    host.Height = _mediaPlayer.NaturalVideoHeight;
-                }
-            }
+            //foreach (var child in videoElement.Children)
+            //{
+            //    if (child is VisualHost host)
+            //    {
+            //        host.Width = _mediaPlayer.NaturalVideoWidth;
+            //        host.Height = _mediaPlayer.NaturalVideoHeight;
+            //    }
+            //}
 
             // Set initial position if loading from saved state
             if (_subtitleData.Count > 0)
@@ -387,15 +387,15 @@ namespace SubtitleVideoPlayerWpf
             Console.WriteLine($"Decreased delay to {_subtitleExtraDurationMs} ms");
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            SaveCurrentSegment(_videoPath, _currentSubIdx);
+        //private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        //{
+        //    SaveCurrentSegment(_videoPath, _currentSubIdx);
 
-            // Clean up resources
-            _timer.Stop();
-            _positionTimer.Stop();
-            _mediaPlayer.Close();
-        }
+        //    // Clean up resources
+        //    _timer.Stop();
+        //    _positionTimer.Stop();
+        //    _mediaPlayer.Close();
+        //}
 
         private int? FindSubtitleAtTime(int currentMs)
         {
@@ -560,6 +560,26 @@ namespace SubtitleVideoPlayerWpf
                 subtitleTextBlock.Text = text;
             }
         }
+
+        private void MediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            MessageBox.Show($"Failed to load media: {e.ErrorException}");
+            _isPlaying = false;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveCurrentSegment(_videoPath, _currentSubIdx);
+
+            // Clean up resources
+            _timer.Stop();
+            _positionTimer.Stop();
+            _mediaPlayer.Close();
+
+            // Clean up resources
+            _timer.Stop();
+            videoElement.Source = null;  // This is the proper way to release a MediaElement
+        }
     }
 
     // Helper classes for MediaPlayer integration
@@ -610,4 +630,6 @@ namespace SubtitleVideoPlayerWpf
     {
         public int? CurrentSegment { get; set; }
     }
+
+
 }

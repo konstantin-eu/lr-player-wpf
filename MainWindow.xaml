@@ -13,12 +13,13 @@
         <!-- Video Player -->
         <Border Grid.Row="0" 
                 Background="Black">
-            <Viewbox Stretch="Uniform">
-                <Canvas x:Name="videoElement" 
-                        Width="800" 
-                        Height="450" 
-                        Background="Black"/>
-            </Viewbox>
+            <MediaElement x:Name="videoElement" 
+                        LoadedBehavior="Manual"
+                        UnloadedBehavior="Stop"
+                        Stretch="Uniform"
+                        MediaOpened="MediaElement_MediaOpened"
+                        MediaEnded="MediaElement_MediaEnded"
+                        MediaFailed="MediaElement_MediaFailed" />
         </Border>
 
         <!-- Subtitle Display -->
