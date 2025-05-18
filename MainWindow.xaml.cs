@@ -528,26 +528,48 @@ namespace SubtitleVideoPlayerWpf
             }
         }
 
-        private void SaveCurrentSegment(string videoName, int segmentIndex)
+        // Add this method to support the improved last session loading
+
+        /// <summary>
+        /// Saves the current session to the progress file including the full path of the video
+        /// </summary>
+        private void SaveCurrentSegment(string videoPath, int currentSegment)
         {
-            if (string.IsNullOrEmpty(videoName)) return;
+            if (string.IsNullOrEmpty(videoPath)) return;
             try
             {
                 var progressData = new Dictionary<string, ProgressData>();
                 if (File.Exists(ProgressFile))
                 {
                     var json = File.ReadAllText(ProgressFile);
-                    progressData = JsonSerializer.Deserialize<Dictionary<string, ProgressData>>(json) ?? new Dictionary<string, ProgressData>();
+                    progressData = JsonSerializer.Deserialize<Dictionary<string, ProgressData>>(json) ??
+                                  new Dictionary<string, ProgressData>();
                 }
-                progressData[Path.GetFileName(videoName)] = new ProgressData { CurrentSegment = segmentIndex };
+
+                // Save using the filename as the key, but store the full path for faster loading next time
+                string fileName = Path.GetFileName(videoPath);
+                progressData[fileName] = new ProgressData
+                {
+                    CurrentSegment = currentSegment,
+                    FullPath = videoPath
+                };
+
                 var updatedJson = JsonSerializer.Serialize(progressData, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(ProgressFile, updatedJson);
             }
             catch (Exception ex)
             {
-                // Log or show a non-blocking error
                 System.Diagnostics.Debug.WriteLine($"Failed to save progress: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Update the ProgressData class to include the full path
+        /// </summary>
+        public class ProgressData
+        {
+            public int? CurrentSegment { get; set; }
+            public string FullPath { get; set; }
         }
 
         private int LoadLastSegmentForVideo(string videoName)
@@ -580,53 +602,126 @@ namespace SubtitleVideoPlayerWpf
 
                 if (progressData != null && progressData.Count > 0)
                 {
-                    // For simplicity, just try to load the first video entry found if multiple exist.
-                    // A more robust approach might ask the user or use the most recently saved.
-                    var lastEntry = progressData.First(); // Or some other logic to pick which video to load
+                    // For simplicity, use the first video entry found
+                    var lastEntry = progressData.First();
                     string videoFileName = lastEntry.Key;
                     int segmentToLoad = lastEntry.Value.CurrentSegment ?? (CfgStartSegment - 1);
 
-                    // This assumes the video file is in a known location or you prompt for it.
-                    // For this example, let's assume the user needs to re-select the video,
-                    // but we can pre-fill the subtitle and segment.
-                    // A better way would be to store full paths or relative paths and try to resolve them.
-                    MessageBoxResult result = MessageBox.Show($"Load last session for '{videoFileName}'?", "Load Previous Session", MessageBoxButton.YesNo);
-                    if (result == MessageBoxResult.Yes)
+                    // Try to find the video file
+                    string videoPath = FindVideoFile(videoFileName);
+                    if (!string.IsNullOrEmpty(videoPath))
                     {
-                        OpenFileDialog openFileDialog = new OpenFileDialog
+                        // Look for the subtitle file with specific suffix
+                        string subtitlePath = Path.Combine(
+                            Path.GetDirectoryName(videoPath),
+                            Path.GetFileNameWithoutExtension(videoPath) + "_word_merge_translated.srt");
+
+                        if (File.Exists(subtitlePath))
                         {
-                            Title = $"Select Video File: {videoFileName}",
-                            Filter = "Video Files|*.mp4;*.avi;*.mkv;*.wmv|All Files|*.*",
-                            FileName = videoFileName // Pre-fill if possible, but path might be different
-                        };
-                        if (openFileDialog.ShowDialog() == true)
-                        {
-                            string videoFilePath = openFileDialog.FileName;
-                            // Assume subtitle has a similar name or is in the same folder
-                            string assumedSubtitlePath = Path.ChangeExtension(videoFilePath, ".srt");
-                            if (File.Exists(assumedSubtitlePath))
+                            // Load video and subtitles directly without prompting
+                            LoadVideoAndSubtitles(videoPath, subtitlePath);
+
+                            // Jump to last saved segment
+                            if (_subtitleData.Count > 0 && segmentToLoad < _subtitleData.Count)
                             {
-                                LoadVideoAndSubtitles(videoFilePath, assumedSubtitlePath);
-                                if (_subtitleData.Count > 0 && segmentToLoad < _subtitleData.Count)
-                                {
-                                    JumpToSegment(segmentToLoad);
-                                }
+                                JumpToSegment(segmentToLoad);
                             }
-                            else
-                            {
-                                MessageBox.Show($"Subtitle for '{videoFileName}' not found at '{assumedSubtitlePath}'. Please select it manually.");
-                                // Fallback to general prompt
-                                PromptForFiles();
-                            }
+                            return;
                         }
                     }
+
+                    // If automatic loading failed, prompt the user
+                    PromptForFiles();
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load last state from progress file: {ex.Message}");
+                PromptForFiles();
             }
         }
+
+        /// <summary>
+        /// Attempts to find the video file using the filename from the progress file.
+        /// First tries to find the exact file in the current directory,
+        /// then prompts the user if it can't be found automatically.
+        /// </summary>
+        // Add this code to FindVideoFile method to use the stored full path
+        private string FindVideoFile(string videoFileName)
+        {
+            try
+            {
+                // First try to use the full path from the progress file
+                var json = File.ReadAllText(ProgressFile);
+                var progressData = JsonSerializer.Deserialize<Dictionary<string, ProgressData>>(json);
+
+                if (progressData != null && progressData.TryGetValue(videoFileName, out var data) &&
+                    !string.IsNullOrEmpty(data.FullPath) && File.Exists(data.FullPath))
+                {
+                    return data.FullPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to get full path from progress file: {ex.Message}");
+            }
+
+            // If full path not available, continue with the original implementation...
+            // [Original implementation from previous artifact]
+
+            // First, try to find the file in the current directory
+            string[] videoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv" };
+            string currentDir = Directory.GetCurrentDirectory();
+
+            // Check if the file exists with any of the common video extensions
+            foreach (var ext in videoExtensions)
+            {
+                string possiblePath = Path.Combine(currentDir, videoFileName);
+                if (File.Exists(possiblePath))
+                {
+                    return possiblePath;
+                }
+            }
+
+            // If not found, look in common video directories
+            string[] commonVideoDirs = {
+            Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Videos"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads")
+        };
+
+            foreach (var dir in commonVideoDirs)
+            {
+                if (Directory.Exists(dir))
+                {
+                    foreach (var ext in videoExtensions)
+                    {
+                        string possiblePath = Path.Combine(dir, videoFileName);
+                        if (File.Exists(possiblePath))
+                        {
+                            return possiblePath;
+                        }
+                    }
+                }
+            }
+
+            // If still not found, quietly prompt the user without mentioning "last session"
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Select Video File",
+                Filter = "Video Files|*.mp4;*.avi;*.mkv;*.wmv|All Files|*.*",
+                FileName = videoFileName
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                return openFileDialog.FileName;
+            }
+
+            return null;
+        }
+
+
 
 
         // --- Event Handlers for MediaElement ---
