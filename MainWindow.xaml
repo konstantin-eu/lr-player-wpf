@@ -8,7 +8,10 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" /> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
         <MediaElement x:Name="videoElement"
                       Grid.Row="0"
@@ -18,16 +21,39 @@
                       MediaOpened="MediaElement_MediaOpened"
                       MediaEnded="MediaElement_MediaEnded"
                       MediaFailed="MediaElement_MediaFailed"
-                      ScrubbingEnabled="True"/> <Border Grid.Row="1" Background="#AA000000" Padding="10">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="120">
-            <TextBlock x:Name="subtitleText"
-                       Text="Subtitles will appear here."
-                       Foreground="White"
-                       FontSize="18"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap"/>
-        </ScrollViewer>
-    </Border>
+                      ScrubbingEnabled="True"/>
 
+        <Border Grid.Row="1" Background="#AA000000" Padding="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="120">
+                <TextBlock x:Name="subtitleText"
+                           Text="Subtitles will appear here."
+                           Foreground="White"
+                           FontSize="28"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Delay Adjustment Controls -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,5,0,10">
+            <Label x:Name="delayLabel"
+                   Content="Delay: 0 ms"
+                   VerticalAlignment="Center"
+                   Foreground="#333333"
+                   FontSize="14"/>
+            <Button x:Name="decreaseDelayBtn"
+                    Content="d-"
+                    Margin="5,0"
+                    Padding="8,3"
+                    Click="DecreaseDelay_Click"/>
+            <Button x:Name="increaseDelayBtn"
+                    Content="d+"
+                    Margin="5,0"
+                    Padding="8,3"
+                    Click="IncreaseDelay_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

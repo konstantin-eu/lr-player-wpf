@@ -119,6 +119,9 @@ namespace SubtitleVideoPlayerWpf
 
         private void LoadVideoAndSubtitles(string videoPath, string subtitlePath)
         {
+            // Initialize and display the current delay value
+            delayLabel.Content = $"Delay: {_subtitleExtraDurationMs} ms";
+
             if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
             {
                 MessageBox.Show($"Video file not found: {videoPath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -167,6 +170,44 @@ namespace SubtitleVideoPlayerWpf
 
             Title = $"{WindowTitle} - {Path.GetFileName(videoPath)}";
             UpdateSubtitleDisplay(); // Initial display
+        }
+
+        // Add these methods to MainWindow.xaml.cs
+
+        /// <summary>
+        /// Increases the subtitle delay by 1000ms
+        /// </summary>
+        private void IncreaseDelay_Click(object sender, RoutedEventArgs e)
+        {
+            _subtitleExtraDurationMs += 1000;
+            delayLabel.Content = $"Delay: {_subtitleExtraDurationMs} ms";
+
+            // Update current segment end time with new delay
+            if (_currentSubIdx < _subtitleData.Count)
+            {
+                var segment = _subtitleData[_currentSubIdx];
+                _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Increased delay to {_subtitleExtraDurationMs} ms");
+        }
+
+        /// <summary>
+        /// Decreases the subtitle delay by 1000ms (minimum 0)
+        /// </summary>
+        private void DecreaseDelay_Click(object sender, RoutedEventArgs e)
+        {
+            _subtitleExtraDurationMs = Math.Max(0, _subtitleExtraDurationMs - 1000);
+            delayLabel.Content = $"Delay: {_subtitleExtraDurationMs} ms";
+
+            // Update current segment end time with new delay
+            if (_currentSubIdx < _subtitleData.Count)
+            {
+                var segment = _subtitleData[_currentSubIdx];
+                _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Decreased delay to {_subtitleExtraDurationMs} ms");
         }
 
         private List<SubtitleSegment> LoadSrt(string filePath)
