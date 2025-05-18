@@ -394,8 +394,75 @@ namespace SubtitleVideoPlayerWpf
         //    // Clean up resources
         //    _timer.Stop();
         //    _positionTimer.Stop();
-        //    _mediaPlayer.Close();
+        //    _mediaPlayer.Close();0
         //}
+
+        // Add these methods to your MainWindow class
+
+        /// <summary>
+        /// Handles the MediaOpened event of the MediaElement control.
+        /// Sets up initial playback position and updates UI elements.
+        /// </summary>
+        private void MediaElement_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Media opened successfully");
+            _isPlaying = true;
+
+            // Set initial position if loading from saved state
+            if (_subtitleData.Count > 0 && _currentSubIdx < _subtitleData.Count)
+            {
+                var segment = _subtitleData[_currentSubIdx];
+                _segmentStartMs = segment.StartMs;
+                _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
+
+                // Seek to the start of the current segment
+                videoElement.Position = TimeSpan.FromMilliseconds(_segmentStartMs);
+                Console.WriteLine($"Positioned video at {_segmentStartMs}ms (segment {_currentSubIdx + 1})");
+            }
+
+            // Update UI to reflect that media is loaded
+            UpdateSubtitles();
+        }
+
+        /// <summary>
+        /// Handles the MediaEnded event of the MediaElement control.
+        /// Updates playback state and UI elements when media reaches the end.
+        /// </summary>
+        private void MediaElement_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Media playback ended");
+            _isPlaying = false;
+            _state = "ended";
+
+            // Clear the subtitle display
+            subtitleTextBlock.Text = "";
+
+            // If we were in a special segment mode, reset to normal
+            _inSubtitleSegment = false;
+
+            // Optional: You can automatically restart from the beginning
+            // videoElement.Position = TimeSpan.Zero;
+            // videoElement.Play();
+            // _state = "playing_normal";
+            // _isPlaying = true;
+        }
+
+        /// <summary>
+        /// Handles the MediaFailed event of the MediaElement control.
+        /// Displays an error message when media loading or playback fails.
+        /// </summary>
+        private void MediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            string errorMessage = e.ErrorException != null ?
+                e.ErrorException.ToString() : "Unknown media error occurred";
+
+            Console.WriteLine($"Media failed: {errorMessage}");
+            MessageBox.Show($"Failed to load or play media:\n\n{errorMessage}",
+                "Media Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            _isPlaying = false;
+            _state = "error";
+        }
 
         private int? FindSubtitleAtTime(int currentMs)
         {
@@ -561,11 +628,11 @@ namespace SubtitleVideoPlayerWpf
             }
         }
 
-        private void MediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
-        {
-            MessageBox.Show($"Failed to load media: {e.ErrorException}");
-            _isPlaying = false;
-        }
+        //private void MediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        //{
+        //    MessageBox.Show($"Failed to load media: {e.ErrorException}");
+        //    _isPlaying = false;
+        //}
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
