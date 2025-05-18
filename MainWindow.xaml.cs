@@ -49,8 +49,13 @@ namespace SubtitleVideoPlayerWpf
             _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
             _mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
 
-            // Hook up the video output to the MediaElement's visual brush
-            videoElement.Source = new VisualBrush(new VisualHost { Visual = new MediaVisual(_mediaPlayer) });
+            // Set up the media element inside the Canvas
+            var hostVisual = new VisualHost { Visual = new MediaVisual(_mediaPlayer) };
+            videoElement.Children.Add(hostVisual);
+
+            // Make the visual host fill the canvas
+            Canvas.SetLeft(hostVisual, 0);
+            Canvas.SetTop(hostVisual, 0);
 
             // Set up timer for subtitle and segment handling
             _timer = new DispatcherTimer();
@@ -108,6 +113,16 @@ namespace SubtitleVideoPlayerWpf
         {
             _positionTimer.Start();
             _isPlaying = true;
+
+            // Ensure the video visual has the right dimensions based on the media
+            foreach (var child in videoElement.Children)
+            {
+                if (child is VisualHost host)
+                {
+                    host.Width = _mediaPlayer.NaturalVideoWidth;
+                    host.Height = _mediaPlayer.NaturalVideoHeight;
+                }
+            }
 
             // Set initial position if loading from saved state
             if (_subtitleData.Count > 0)
@@ -559,7 +574,7 @@ namespace SubtitleVideoPlayerWpf
         }
     }
 
-    public class VisualHost : FrameworkElement
+    public class VisualHost : Viewbox
     {
         private Visual _visual;
 
@@ -569,18 +584,18 @@ namespace SubtitleVideoPlayerWpf
             set
             {
                 _visual = value;
-                AddVisualChild(_visual);
-                AddLogicalChild(_visual);
+
+                // Create a presenter for the visual
+                var presenter = new Grid();
+                var brush = new VisualBrush(_visual);
+                presenter.Background = brush;
+
+                // Set as child of this Viewbox
+                this.Child = presenter;
+                this.Stretch = Stretch.Uniform;
+                this.HorizontalAlignment = HorizontalAlignment.Stretch;
+                this.VerticalAlignment = VerticalAlignment.Stretch;
             }
-        }
-
-        protected override int VisualChildrenCount => _visual != null ? 1 : 0;
-
-        protected override Visual GetVisualChild(int index)
-        {
-            if (index != 0 || _visual == null)
-                throw new ArgumentOutOfRangeException(nameof(index));
-            return _visual;
         }
     }
 
