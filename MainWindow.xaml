@@ -24,11 +24,11 @@
                       ScrubbingEnabled="True"/>
 
         <Border Grid.Row="1" Background="#AA000000" Padding="10">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="120">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Height="200">
                 <TextBlock x:Name="subtitleText"
                            Text="Subtitles will appear here."
                            Foreground="White"
-                           FontSize="28"
+                           FontSize="22"
                            TextAlignment="Center"
                            TextWrapping="Wrap"/>
             </ScrollViewer>
