@@ -25,12 +25,17 @@
 
         <Border Grid.Row="1" Background="#AA000000" Padding="10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Height="200">
-                <TextBlock x:Name="subtitleText"
-                           Text="Subtitles will appear here."
-                           Foreground="White"
-                           FontSize="22"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"/>
+                <TextBox x:Name="subtitleText"
+                         Text="Subtitles will appear here."
+                         Foreground="White"
+                         FontSize="22"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap"
+                         IsReadOnly="True"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         SelectionBrush="#AAFFFFFF"
+                         Cursor="IBeam"/>
             </ScrollViewer>
         </Border>
 
