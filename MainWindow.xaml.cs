@@ -58,6 +58,47 @@ namespace SubtitleVideoPlayerWpf
             }
         }
 
+        // Add these methods to the MainWindow class
+
+        private void UpdateDurationDisplay()
+        {
+            // Update the label to show current subtitle duration adjustment
+            subtitleDurationAdjustLabel.Content = $"Subtitle Duration: {(_subtitleExtraDurationMs >= 0 ? "+" : "")}{_subtitleExtraDurationMs / 1000}s";
+
+            // If we're in a subtitle segment, update the end time for the current segment
+            if (_inSubtitleSegment && _currentSubIdx >= 0 && _currentSubIdx < _subtitleData.Count)
+            {
+                _segmentEndMs = _subtitleData[_currentSubIdx].EndMs + _subtitleExtraDurationMs;
+                Console.WriteLine($"Updated segment {_currentSubIdx + 1} end time: {_segmentEndMs}ms (original: {_subtitleData[_currentSubIdx].EndMs}ms, adjustment: {_subtitleExtraDurationMs}ms)");
+            }
+
+            // We also need to update the current visible subtitle if we're in normal playback mode
+            if (_state == "playing_normal")
+            {
+                UpdateSubtitleDisplay();
+            }
+        }
+
+        private void IncreaseDurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Increase subtitle duration by 1 second (1000 ms)
+            _subtitleExtraDurationMs += 1000;
+            UpdateDurationDisplay();
+        }
+
+        private void DecreaseDurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Decrease subtitle duration by 1 second (1000 ms), but don't go below -original duration
+            // This would make sure subtitles don't end before they start
+            int minAdjustment = -1000; // Allow at most 1 second reduction
+
+            if (_subtitleExtraDurationMs > minAdjustment)
+            {
+                _subtitleExtraDurationMs -= 1000;
+                UpdateDurationDisplay();
+            }
+        }
+
         private void OpenFileButton_Click(object sender, RoutedEventArgs e)
         {
             videoElement.Stop();

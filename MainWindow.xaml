@@ -43,12 +43,27 @@
                    VerticalAlignment="Center"
                    Foreground="#333333"
                    FontSize="14"/>
+            <Label x:Name="subtitleDurationAdjustLabel"
+                   Content="Subtitle Duration: +0s"
+                   VerticalAlignment="Center"
+                   Foreground="#333333"
+                   Margin="10,0,0,0"
+                   FontSize="14"/>
+            <Button x:Name="decreaseDurationButton"
+                    Content="-1s"
+                    Margin="10,0,0,0"
+                    Padding="8,3"
+                    Click="DecreaseDurationButton_Click"/>
+            <Button x:Name="increaseDurationButton"
+                    Content="+1s"
+                    Margin="5,0,0,0"
+                    Padding="8,3"
+                    Click="IncreaseDurationButton_Click"/>
             <Button x:Name="openFileButton"
                     Content="Open Video &amp; Subtitles"
                     Margin="10,0,0,0"
                     Padding="8,3"
                     Click="OpenFileButton_Click"/>
-
         </StackPanel>
     </Grid>
 </Window>
