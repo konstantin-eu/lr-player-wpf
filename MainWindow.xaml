@@ -44,6 +44,7 @@
                    VerticalAlignment="Center"
                    Foreground="#333333"
                    FontSize="14"/>
+            <!--
             <Button x:Name="decreaseDelayBtn"
                     Content="d-"
                     Margin="5,0"
@@ -54,6 +55,7 @@
                     Margin="5,0"
                     Padding="8,3"
                     Click="IncreaseDelay_Click"/>
+            -->
         </StackPanel>
     </Grid>
 </Window>
