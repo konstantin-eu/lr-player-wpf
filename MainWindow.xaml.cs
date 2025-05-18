@@ -10,6 +10,9 @@ using System.Windows.Threading;
 using Microsoft.Win32; // For OpenFileDialog
 using System.Globalization; // For parsing subtitle times
 
+using System;
+using System.Runtime.InteropServices;
+
 namespace SubtitleVideoPlayerWpf
 //namespace LangRepeater
 {
@@ -39,9 +42,16 @@ namespace SubtitleVideoPlayerWpf
         private TimeSpan _currentPosition;
         private bool _isPlaying = false;
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool AllocConsole();
+
         public MainWindow()
         {
             InitializeComponent();
+
+            AllocConsole(); // creates a console window
+            Console.WriteLine("Console output from WPF!");
+
             Title = WindowTitle;
             Width = 800; // Initial width
             Height = 600; // Initial height
@@ -170,6 +180,7 @@ namespace SubtitleVideoPlayerWpf
 
             Title = $"{WindowTitle} - {Path.GetFileName(videoPath)}";
             UpdateSubtitleDisplay(); // Initial display
+//            JumpToSegment(_currentSubIdx);
         }
 
         // Add these methods to MainWindow.xaml.cs
@@ -507,8 +518,10 @@ namespace SubtitleVideoPlayerWpf
 
         private void JumpToSegment(int segmentIndex)
         {
+            Console.WriteLine("segmentIndex:" + segmentIndex);  // prints with newline
             if (segmentIndex >= 0 && segmentIndex < _subtitleData.Count)
             {
+                Console.WriteLine("segmentIndex2:" + segmentIndex);  // prints with newline
                 _currentSubIdx = segmentIndex;
                 var segment = _subtitleData[segmentIndex];
                 _segmentStartMs = segment.StartMs;
