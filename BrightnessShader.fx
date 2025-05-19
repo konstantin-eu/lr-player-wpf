@@ -8,7 +8,8 @@ float4 main(float2 uv : TEXCOORD) : COLOR
     float4 color = tex2D(Input, uv);
 
     // Apply the brightness factor to the RGB components
-    color.rgb *= BrightnessFactor;
+    //color.rgb *= BrightnessFactor;
+    color.rgb += BrightnessFactor;
 
     // Return the modified color
     // WPF handles clamping to the [0,1] range automatically for display.

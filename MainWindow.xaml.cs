@@ -689,6 +689,16 @@ namespace SubtitleVideoPlayerWpf
 
         private void MediaElement_MediaOpened(object sender, RoutedEventArgs e)
         {
+            // Video has successfully opened, now apply the brightness effect.
+            BrightnessEffect videoBrightnessEffect = new BrightnessEffect();
+
+            videoBrightnessEffect.BrightnessFactor = 0.2; // Example: 50% brighter
+
+            videoElement.Effect = videoBrightnessEffect;
+
+            // Optional: Confirm the effect is applied
+            System.Diagnostics.Debug.WriteLine($"Video '{videoElement.Source}' opened. Brightness effect applied with factor {videoBrightnessEffect.BrightnessFactor}.");
+
             _isPlaying = true;
             // Initial positioning is handled by LoadVideoAndSubtitles
             Console.WriteLine("MediaElement_MediaOpened: Video opened and ready.");

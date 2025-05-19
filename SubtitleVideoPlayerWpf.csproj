@@ -10,10 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\BrightnessShader.ps" />
     <None Remove="Resources\lr_payer_logo1_v2.ico" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\BrightnessShader.ps" />
     <Resource Include="Resources\lr_payer_logo1_v2.ico" />
   </ItemGroup>
 
