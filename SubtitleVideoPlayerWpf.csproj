@@ -6,6 +6,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\lr_payer_logo1_v2.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\lr_payer_logo1_v2.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\lr_payer_logo1_v2.ico" />
+  </ItemGroup>
 
 </Project>
