@@ -697,6 +697,25 @@ namespace SubtitleVideoPlayerWpf
             {
                 _timer.Start();
             }
+
+            System.Diagnostics.Debug.WriteLine("___ MediaElement_MediaOpened!");
+
+            // needed this code to restart video from the saved position
+            if (_subtitleData.Count > 0 && _currentSubIdx < _subtitleData.Count)
+            {
+                var segment = _subtitleData[_currentSubIdx];
+                _segmentStartMs = segment.StartMs;
+                _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
+
+                videoElement.Position = TimeSpan.FromMilliseconds(_segmentStartMs);
+            }
+            else if (_subtitleData.Count == 0) // No subtitles, play from start
+            {
+                videoElement.Position = TimeSpan.Zero;
+            }
+
+            videoElement.Play();
+
         }
 
         private void MediaElement_MediaEnded(object sender, RoutedEventArgs e)
