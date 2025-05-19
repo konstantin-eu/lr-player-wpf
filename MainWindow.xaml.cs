@@ -692,7 +692,7 @@ namespace SubtitleVideoPlayerWpf
             // Video has successfully opened, now apply the brightness effect.
             BrightnessEffect videoBrightnessEffect = new BrightnessEffect();
 
-            videoBrightnessEffect.BrightnessFactor = 0.2; // Example: 50% brighter
+            videoBrightnessEffect.BrightnessFactor = 0.1; // Example: 50% brighter
 
             videoElement.Effect = videoBrightnessEffect;
 
