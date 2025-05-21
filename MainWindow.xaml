@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SubtitleVideoPlayerWpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="MainWindow"
+        Icon="/Resources/lr_payer_logo1_v2.ico"
+        Height="450" Width="800">
+    <Grid Background="#AA000000">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -23,18 +25,25 @@
                       MediaFailed="MediaElement_MediaFailed"
                       ScrubbingEnabled="True"/>
 
-        <Border Grid.Row="1" Background="#AA000000" Padding="10">
+        <Border Grid.Row="1" Padding="10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Height="200">
-                <TextBlock x:Name="subtitleText"
-                           Text="Subtitles will appear here."
-                           Foreground="White"
-                           FontSize="22"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"/>
+                <TextBox x:Name="subtitleText"
+                         Text="Subtitles will appear here."
+                         Foreground="White"
+                         FontSize="22"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap"
+                         IsReadOnly="True"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         SelectionBrush="#AAFFFFFF"
+                         Cursor="IBeam"
+                         KeyboardNavigation.TabNavigation="None"
+                         KeyboardNavigation.DirectionalNavigation="None"
+                         PreviewKeyDown="TextBox_PreviewKeyDown"/>
             </ScrollViewer>
         </Border>
 
-        <!-- Delay Adjustment Controls -->
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
@@ -42,20 +51,42 @@
             <Label x:Name="delayLabel"
                    Content="Delay: 0 ms"
                    VerticalAlignment="Center"
-                   Foreground="#333333"
+                   Foreground="#FFD1D1D1"
                    FontSize="14"/>
-            <!--
-            <Button x:Name="decreaseDelayBtn"
-                    Content="d-"
-                    Margin="5,0"
+            <Label x:Name="subtitleDurationAdjustLabel"
+                   Content="Subtitle Duration: +0s"
+                   VerticalAlignment="Center"
+                   Foreground="#FFD1D1D1"
+                   Margin="10,0,0,0"
+                   FontSize="14"/>
+            <Button x:Name="decreaseDurationButton"
+                    Content="-1s"
+                    Margin="10,0,0,0"
                     Padding="8,3"
-                    Click="DecreaseDelay_Click"/>
-            <Button x:Name="increaseDelayBtn"
-                    Content="d+"
-                    Margin="5,0"
+                    Click="DecreaseDurationButton_Click"/>
+            <Button x:Name="increaseDurationButton"
+                    Content="+1s"
+                    Margin="5,0,0,0"
                     Padding="8,3"
-                    Click="IncreaseDelay_Click"/>
-            -->
+                    Click="IncreaseDurationButton_Click"/>
+
+            <Button x:Name="rewindButton"
+                    Content="&lt;&lt; 10s"
+                    Margin="10,0,0,0"
+                    Padding="8,3"
+                    Click="RewindButton_Click"/>
+
+            <Button x:Name="forwardButton"
+                    Content="10s &gt;&gt;"
+                    Margin="5,0,0,0"
+                    Padding="8,3"
+                    Click="ForwardButton_Click"/>
+
+            <Button x:Name="openFileButton"
+                    Content="Open Video &amp; Subtitles"
+                    Margin="10,0,0,0"
+                    Padding="8,3"
+                    Click="OpenFileButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>
