@@ -47,11 +47,10 @@ namespace SubtitleVideoPlayerWpf
             _timer.Tick += Timer_Tick;
             // Timer will be started after files are loaded
 
-            // Changed to PreviewKeyDown for more reliable key handling
             this.PreviewKeyDown += MainWindow_KeyDown;
             this.Closing += Window_Closing;
 
-            LoadLastState(); // Attempt to load last video and progress
+            LoadLastState();
 
             if (string.IsNullOrEmpty(_videoPath) || _subtitleData.Count == 0)
             {
@@ -62,34 +61,28 @@ namespace SubtitleVideoPlayerWpf
         // Handle key events from the TextBox to prevent them from being consumed
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // Let Ctrl+C pass through for copy functionality
             if (e.Key == Key.C && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 return;
             }
 
-            // For all other navigation keys, mark as handled and let the main window handle them
             if (e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Space ||
                 e.Key == Key.O || e.Key == Key.Escape)
             {
                 e.Handled = true;
-                // The main window's PreviewKeyDown will still fire and handle these keys
             }
         }
 
         private void UpdateDurationDisplay()
         {
-            // Update the label to show current subtitle duration adjustment
             subtitleDurationAdjustLabel.Content = $"Subtitle Duration: {(_subtitleExtraDurationMs >= 0 ? "+" : "")}{_subtitleExtraDurationMs / 1000}s";
 
-            // If we're in a subtitle segment, update the end time for the current segment
             if (_inSubtitleSegment && _currentSubIdx >= 0 && _currentSubIdx < _subtitleData.Count)
             {
                 _segmentEndMs = _subtitleData[_currentSubIdx].EndMs + _subtitleExtraDurationMs;
                 Console.WriteLine($"Updated segment {_currentSubIdx + 1} end time: {_segmentEndMs}ms (original: {_subtitleData[_currentSubIdx].EndMs}ms, adjustment: {_subtitleExtraDurationMs}ms)");
             }
 
-            // We also need to update the current visible subtitle if we're in normal playback mode
             if (_state == "playing_normal")
             {
                 UpdateSubtitleDisplay();
@@ -98,21 +91,54 @@ namespace SubtitleVideoPlayerWpf
 
         private void IncreaseDurationButton_Click(object sender, RoutedEventArgs e)
         {
-            // Increase subtitle duration by 1 second (1000 ms)
             _subtitleExtraDurationMs += 1000;
             UpdateDurationDisplay();
         }
 
         private void DecreaseDurationButton_Click(object sender, RoutedEventArgs e)
         {
-            // Decrease subtitle duration by 1 second (1000 ms), but don't go below -original duration
-            // This would make sure subtitles don't end before they start
-            int minAdjustment = -1000; // Allow at most 1 second reduction
+            int minAdjustment = -1000;
 
             if (_subtitleExtraDurationMs > minAdjustment)
             {
                 _subtitleExtraDurationMs -= 1000;
                 UpdateDurationDisplay();
+            }
+        }
+
+        // New Event Handler for Rewind Button
+        private void RewindButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (videoElement.Source != null)
+            {
+                TimeSpan currentPosition = videoElement.Position;
+                TimeSpan newPosition = currentPosition - TimeSpan.FromSeconds(10);
+                if (newPosition < TimeSpan.Zero)
+                {
+                    newPosition = TimeSpan.Zero;
+                }
+                videoElement.Position = newPosition;
+                UpdateSubtitleDisplay(); // Update subtitles if position changes
+            }
+        }
+
+        // New Event Handler for Forward Button
+        private void ForwardButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (videoElement.Source != null)
+            {
+                if (videoElement.NaturalDuration.HasTimeSpan)
+                {
+                    TimeSpan currentPosition = videoElement.Position;
+                    TimeSpan duration = videoElement.NaturalDuration.TimeSpan;
+                    TimeSpan newPosition = currentPosition + TimeSpan.FromSeconds(10);
+                    if (newPosition > duration)
+                    {
+                        newPosition = duration;
+                    }
+                    videoElement.Position = newPosition;
+                    UpdateSubtitleDisplay(); // Update subtitles if position changes
+                }
             }
         }
 
@@ -153,7 +179,7 @@ namespace SubtitleVideoPlayerWpf
                     openFileDialog.Title = "Select Subtitle File (SRT)";
                     openFileDialog.Filter = "SRT Files|*.srt|All Files|*.*";
                     openFileDialog.InitialDirectory = Path.GetDirectoryName(videoFilePath);
-                    openFileDialog.FileName = ""; // Clear previous selection
+                    openFileDialog.FileName = "";
 
                     if (openFileDialog.ShowDialog() == true)
                     {
@@ -169,17 +195,17 @@ namespace SubtitleVideoPlayerWpf
             if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
             {
                 MessageBox.Show($"Video file not found: {videoPath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                _videoPath = null; // Ensure it's null so PromptForFiles might be called again if needed
+                _videoPath = null;
                 return;
             }
             if (string.IsNullOrWhiteSpace(subtitlePath) || !File.Exists(subtitlePath))
             {
                 MessageBox.Show($"Subtitle file not found: {subtitlePath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                _videoPath = null; // Ensure it's null
+                _videoPath = null;
                 return;
             }
 
-            _videoPath = videoPath; // Set _videoPath here
+            _videoPath = videoPath;
             videoElement.Source = new Uri(_videoPath);
 
             try
@@ -196,13 +222,13 @@ namespace SubtitleVideoPlayerWpf
                 _subtitleData.Clear();
             }
 
-            int lastSegment = LoadLastSegmentForVideo(Path.GetFileName(videoPath)); // Use filename as key
-            _currentSubIdx = 0; // Default to 0
+            int lastSegment = LoadLastSegmentForVideo(Path.GetFileName(videoPath));
+            _currentSubIdx = 0;
 
             if (_subtitleData.Count > 0)
             {
-                _currentSubIdx = Math.Max(0, Math.Min(lastSegment, _subtitleData.Count - 1)); // Ensure it's within bounds
-                                                                                              // If lastSegment indicated "after last subtitle", this will take the last valid index.
+                _currentSubIdx = Math.Max(0, Math.Min(lastSegment, _subtitleData.Count - 1));
+
                 if (lastSegment >= _subtitleData.Count && _subtitleData.Count > 0)
                 {
                     _currentSubIdx = _subtitleData.Count - 1;
@@ -225,7 +251,7 @@ namespace SubtitleVideoPlayerWpf
                 _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
                 videoElement.Position = TimeSpan.FromMilliseconds(_segmentStartMs);
             }
-            else if (_subtitleData.Count == 0) // No subtitles, play from start
+            else if (_subtitleData.Count == 0)
             {
                 videoElement.Position = TimeSpan.Zero;
             }
@@ -245,14 +271,13 @@ namespace SubtitleVideoPlayerWpf
         private List<SubtitleSegment> LoadSrt(string filePath)
         {
             var subtitles = new List<SubtitleSegment>();
-            // Robust SRT parsing might be needed for malformed files. This is a basic parser.
             try
             {
                 var lines = File.ReadAllLines(filePath);
                 int i = 0;
                 while (i < lines.Length)
                 {
-                    if (int.TryParse(lines[i], out _)) // Check for segment number
+                    if (int.TryParse(lines[i], out _))
                     {
                         i++;
                         if (i < lines.Length && lines[i].Contains("-->"))
@@ -277,17 +302,17 @@ namespace SubtitleVideoPlayerWpf
                                     Text = text.Trim()
                                 });
                             }
-                            else { i++; } // Malformed time line
+                            else { i++; }
                         }
-                        else { i++; } // Expected time line not found
+                        else { i++; }
                     }
-                    else { i++; } // Not a segment number
+                    else { i++; }
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error reading SRT file content: {ex.Message}", "SRT Read Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return new List<SubtitleSegment>(); // Return empty list on error
+                return new List<SubtitleSegment>();
             }
             return subtitles;
         }
@@ -299,7 +324,6 @@ namespace SubtitleVideoPlayerWpf
             {
                 return result;
             }
-            // Try parsing without milliseconds if above fails (e.g., 00:00:20)
             if (TimeSpan.TryParseExact(srtTime, @"hh\:mm\:ss", CultureInfo.InvariantCulture, out result))
             {
                 return result;
@@ -321,7 +345,7 @@ namespace SubtitleVideoPlayerWpf
             if (_state == "playing_normal")
             {
                 int? subtitleIdx = FindSubtitleAtTime(currentMs);
-                if (subtitleIdx.HasValue && subtitleIdx.Value != _currentSubIdx) // Found a new segment we should be in
+                if (subtitleIdx.HasValue && subtitleIdx.Value != _currentSubIdx)
                 {
                     _currentSubIdx = subtitleIdx.Value;
                     var segment = _subtitleData[_currentSubIdx];
@@ -358,7 +382,7 @@ namespace SubtitleVideoPlayerWpf
                     {
                         _state = "waiting_pause";
                         Console.WriteLine($"Pausing after completing segment {_currentSubIdx + 1} / {_subtitleData.Count}");
-                        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(0) }; // Minimal delay
+                        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(0) };
                         timer.Tick += (s, args) => { AfterSegmentPause(timer); };
                         timer.Start();
                     }
@@ -371,15 +395,14 @@ namespace SubtitleVideoPlayerWpf
             for (int i = 0; i < _subtitleData.Count; i++)
             {
                 var segment = _subtitleData[i];
-                if (segment.StartMs <= currentMs && currentMs <= (segment.EndMs + _subtitleExtraDurationMs)) // Consider extra duration for display
+                if (segment.StartMs <= currentMs && currentMs <= (segment.EndMs + _subtitleExtraDurationMs))
                 {
                     return i;
                 }
             }
-            // If past the last subtitle's end time, but still within the video
             if (_subtitleData.Count > 0 && currentMs > _subtitleData.Last().EndMs + _subtitleExtraDurationMs)
             {
-                return null; // Or indicate "after last subtitle" if needed elsewhere
+                return null;
             }
             return null;
         }
@@ -403,22 +426,14 @@ namespace SubtitleVideoPlayerWpf
             timer.Stop();
             if (_state == "waiting_pause")
             {
-                videoElement.Play(); // Continue from current position
+                videoElement.Play();
                 _isPlaying = true;
                 _state = "playing_normal";
-                _inSubtitleSegment = false; // No longer in a specific repeating segment
+                _inSubtitleSegment = false;
                 Console.WriteLine($"Continuing normal playback after segment {_currentSubIdx + 1}");
 
-                // If we finished the last segment, currentSubIdx might need to reflect "past last segment" for saving
-                // Or we save the index of the next segment to start, if applicable.
-                // For now, SaveCurrentSegment is called when entering a segment.
-                // If we want to save "completed up to segment X", that's different.
-                // The current save logic saves the *active* segment index.
-                // If after the last segment, we might save _subtitleData.Count to indicate completion.
                 if (_currentSubIdx == _subtitleData.Count - 1)
                 {
-                    // Consider if we should advance _currentSubIdx for saving purposes to _subtitleData.Count
-                    // SaveCurrentSegment(_videoPath, _subtitleData.Count); // Indicates all segments up to the last one were processed
                 }
             }
         }
@@ -439,7 +454,7 @@ namespace SubtitleVideoPlayerWpf
                     displaySubIdx = currentVisibleSubIndex.Value;
                 }
             }
-            else // playing_segment or user_paused (while in a segment)
+            else
             {
                 if (_currentSubIdx >= 0 && _currentSubIdx < _subtitleData.Count)
                 {
@@ -466,7 +481,7 @@ namespace SubtitleVideoPlayerWpf
             }
             else
             {
-                text = ""; // No subtitle active at current time
+                text = "";
             }
 
             subtitleText.Text = (string.IsNullOrEmpty(statusInfo) ? "" : $" {statusInfo}") + "\n" + text;
@@ -482,12 +497,12 @@ namespace SubtitleVideoPlayerWpf
             var segment = _subtitleData[_currentSubIdx];
             _segmentStartMs = segment.StartMs;
             _segmentEndMs = segment.EndMs + _subtitleExtraDurationMs;
-            _currentRepetition = 0; // Reset repetitions when jumping
-            _state = "playing_segment"; // Assume we want repetition logic for the jumped-to segment
+            _currentRepetition = 0;
+            _state = "playing_segment";
             _inSubtitleSegment = true;
 
             videoElement.Position = TimeSpan.FromMilliseconds(_segmentStartMs);
-            if (!_isPlaying) // If paused, play after jumping
+            if (!_isPlaying)
             {
                 videoElement.Play();
                 _isPlaying = true;
@@ -510,11 +525,11 @@ namespace SubtitleVideoPlayerWpf
                 {
                     string json = File.ReadAllText(ProgressFile);
                     overallProgress = JsonSerializer.Deserialize<OverallProgress>(json);
-                    if (overallProgress == null) // Handle case where file is empty or just "null"
+                    if (overallProgress == null)
                     {
                         overallProgress = new OverallProgress();
                     }
-                    if (overallProgress.VideoDetails == null) // Ensure dictionary is initialized
+                    if (overallProgress.VideoDetails == null)
                     {
                         overallProgress.VideoDetails = new Dictionary<string, ProgressData>();
                     }
@@ -524,7 +539,7 @@ namespace SubtitleVideoPlayerWpf
                     Console.WriteLine($"Warning: {ProgressFile} is corrupted or not valid JSON. Creating a new one.");
                     overallProgress = new OverallProgress();
                 }
-                catch (Exception ex) // Catch other potential errors during file read/deserialization
+                catch (Exception ex)
                 {
                     Console.WriteLine($"Error reading {ProgressFile}: {ex.Message}. Creating a new one.");
                     overallProgress = new OverallProgress();
@@ -599,7 +614,6 @@ namespace SubtitleVideoPlayerWpf
                     overallProgress.VideoDetails.TryGetValue(overallProgress.LastActiveVideoFileName, out ProgressData lastSessionData))
                 {
                     string videoFilePathCandidate = lastSessionData.FullPath;
-                    // int? segmentToLoad = lastSessionData.CurrentSegment; // This will be handled by LoadVideoAndSubtitles
 
                     if (string.IsNullOrEmpty(videoFilePathCandidate) || !File.Exists(videoFilePathCandidate))
                     {
@@ -617,10 +631,7 @@ namespace SubtitleVideoPlayerWpf
                     }
 
                     Console.WriteLine($"Attempting to load last session: Video='{videoFilePathCandidate}', Subtitle='{subtitlePathCandidate}'");
-                    // _videoPath will be set by LoadVideoAndSubtitles if successful
                     LoadVideoAndSubtitles(videoFilePathCandidate, subtitlePathCandidate);
-                    // If LoadVideoAndSubtitles fails (e.g. user cancels a messagebox, or file is bad), _videoPath might become null.
-                    // The check in the constructor `if (string.IsNullOrEmpty(_videoPath) || _subtitleData.Count == 0)` will then call PromptForFiles.
                 }
                 else
                 {
@@ -642,12 +653,12 @@ namespace SubtitleVideoPlayerWpf
         {
             System.Diagnostics.Debug.WriteLine("pressed!");
 
-            if (videoElement.Source == null) return; // Only process if video loaded
+            if (videoElement.Source == null) return;
 
             if (e.Key == Key.Left)
             {
                 if (_subtitleData.Count > 0) JumpToSegment(Math.Max(0, _currentSubIdx - 1));
-                e.Handled = true; // Mark as handled to prevent further processing
+                e.Handled = true;
             }
             else if (e.Key == Key.Right)
             {
@@ -660,24 +671,23 @@ namespace SubtitleVideoPlayerWpf
                 {
                     videoElement.Pause();
                     _isPlaying = false;
-                    _state = "user_paused"; // Keep track that user paused it
+                    _state = "user_paused";
                 }
                 else
                 {
                     videoElement.Play();
                     _isPlaying = true;
-                    // Restore state based on whether we were in a segment or normal playback
                     if (_inSubtitleSegment && _currentSubIdx >= 0 && _currentSubIdx < _subtitleData.Count)
                         _state = "playing_segment";
                     else
                         _state = "playing_normal";
                 }
-                UpdateSubtitleDisplay(); // Update display for pause/play status
+                UpdateSubtitleDisplay();
                 e.Handled = true;
             }
             else if (e.Key == Key.O)
             {
-                OpenFileButton_Click(this, new RoutedEventArgs()); // Reuse button click logic
+                OpenFileButton_Click(this, new RoutedEventArgs());
                 e.Handled = true;
             }
             else if (e.Key == Key.Escape)
@@ -689,28 +699,24 @@ namespace SubtitleVideoPlayerWpf
 
         private void MediaElement_MediaOpened(object sender, RoutedEventArgs e)
         {
-            // Video has successfully opened, now apply the brightness effect.
             BrightnessEffect videoBrightnessEffect = new BrightnessEffect();
 
-            videoBrightnessEffect.BrightnessFactor = 0.1; // Example: 50% brighter
+            videoBrightnessEffect.BrightnessFactor = 0.1;
 
             videoElement.Effect = videoBrightnessEffect;
 
-            // Optional: Confirm the effect is applied
             System.Diagnostics.Debug.WriteLine($"Video '{videoElement.Source}' opened. Brightness effect applied with factor {videoBrightnessEffect.BrightnessFactor}.");
 
             _isPlaying = true;
-            // Initial positioning is handled by LoadVideoAndSubtitles
             Console.WriteLine("MediaElement_MediaOpened: Video opened and ready.");
-            UpdateSubtitleDisplay(); // Ensure subtitles are correct on open
-            if (_timer != null && !_timer.IsEnabled) // Ensure timer starts if not already
+            UpdateSubtitleDisplay();
+            if (_timer != null && !_timer.IsEnabled)
             {
                 _timer.Start();
             }
 
             System.Diagnostics.Debug.WriteLine("___ MediaElement_MediaOpened!");
 
-            // needed this code to restart video from the saved position
             if (_subtitleData.Count > 0 && _currentSubIdx < _subtitleData.Count)
             {
                 var segment = _subtitleData[_currentSubIdx];
@@ -719,7 +725,7 @@ namespace SubtitleVideoPlayerWpf
 
                 videoElement.Position = TimeSpan.FromMilliseconds(_segmentStartMs);
             }
-            else if (_subtitleData.Count == 0) // No subtitles, play from start
+            else if (_subtitleData.Count == 0)
             {
                 videoElement.Position = TimeSpan.Zero;
             }
@@ -731,45 +737,43 @@ namespace SubtitleVideoPlayerWpf
         private void MediaElement_MediaEnded(object sender, RoutedEventArgs e)
         {
             _isPlaying = false;
-            _state = "user_paused"; // Or a new state like "ended"
+            _state = "user_paused";
             subtitleText.Text = "Video ended. Press Space to replay from start or O to open new.";
-            // Optionally, save progress indicating video completion
             if (!string.IsNullOrEmpty(_videoPath) && _subtitleData.Count > 0)
             {
-                SaveCurrentSegment(_videoPath, _subtitleData.Count); // Save as "past last segment"
+                SaveCurrentSegment(_videoPath, _subtitleData.Count);
             }
         }
 
         private void MediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
             _isPlaying = false;
-            _videoPath = null; // Invalidate current video path
+            _videoPath = null;
             _subtitleData.Clear();
             subtitleText.Text = "Media failed to load.";
             MessageBox.Show($"Failed to load media: {e.ErrorException.Message}", "Media Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            // PromptForFiles(); // Optionally prompt immediately
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!string.IsNullOrEmpty(_videoPath) && videoElement.Source != null)
             {
-                // Decide what segment to save: current visual one, or _currentSubIdx (which might be segment being repeated)
-                // If video is playing, current position might be between segments if in "playing_normal"
-                // For simplicity, saving _currentSubIdx. If it is end of subtitles, it is _subtitleData.Count.
                 int segmentToSave = _currentSubIdx;
                 if (_state == "playing_normal" && _subtitleData.Count > 0)
                 {
                     var currentVisualSeg = FindSubtitleAtTime((int)videoElement.Position.TotalMilliseconds);
                     if (currentVisualSeg.HasValue) segmentToSave = currentVisualSeg.Value;
-                    else if (videoElement.Position.TotalMilliseconds >= _subtitleData.Last().EndMs) segmentToSave = _subtitleData.Count; // Past all segments
+                    else if (_subtitleData.LastOrDefault() != null && videoElement.Position.TotalMilliseconds >= _subtitleData.Last().EndMs) segmentToSave = _subtitleData.Count;
                 }
                 SaveCurrentSegment(_videoPath, segmentToSave);
             }
 
             _timer?.Stop();
             videoElement?.Stop();
-            videoElement.Source = null; // Release file lock
+            if (videoElement != null) // Add null check for videoElement
+            {
+                videoElement.Source = null;
+            }
         }
     }
 
@@ -780,16 +784,15 @@ namespace SubtitleVideoPlayerWpf
         public string Text { get; set; }
     }
 
-    // New class for the overall progress file structure
     public class OverallProgress
     {
         public string LastActiveVideoFileName { get; set; }
         public Dictionary<string, ProgressData> VideoDetails { get; set; } = new Dictionary<string, ProgressData>();
     }
 
-    public class ProgressData // Modified to include FullPath
+    public class ProgressData
     {
-        public string FullPath { get; set; } // Full path to the video file
+        public string FullPath { get; set; }
         public int? CurrentSegment { get; set; }
     }
 }

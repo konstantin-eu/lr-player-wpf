@@ -69,6 +69,19 @@
                     Margin="5,0,0,0"
                     Padding="8,3"
                     Click="IncreaseDurationButton_Click"/>
+
+            <Button x:Name="rewindButton"
+                    Content="&lt;&lt; 10s"
+                    Margin="10,0,0,0"
+                    Padding="8,3"
+                    Click="RewindButton_Click"/>
+
+            <Button x:Name="forwardButton"
+                    Content="10s &gt;&gt;"
+                    Margin="5,0,0,0"
+                    Padding="8,3"
+                    Click="ForwardButton_Click"/>
+
             <Button x:Name="openFileButton"
                     Content="Open Video &amp; Subtitles"
                     Margin="10,0,0,0"
