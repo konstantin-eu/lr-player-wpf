@@ -1,4 +1,8 @@
 # SubtitleVideoPlayerWpf
+Windows WPF app part of Langrepeater german learning stack https://github.com/konstantin-eu/langrepeater
+Video player with subtitles support and following features:
+- Each subtitle is repeteated 3 times
+- rewind to next/prev subtitle
 
 # build
 
@@ -29,3 +33,6 @@ Type: Audio
 Channels: Stereo
 Sample rate: 48000 Hz
 Bits per sample: 32
+
+# app screenshots and video
+TODO
