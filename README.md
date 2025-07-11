@@ -36,3 +36,11 @@ Bits per sample: 32
 
 # app screenshots and video
 TODO
+
+# Note on Code Generation
+Parts of this project were programmed with the assistance of a large language model (LLM).
+As such, some code may not reflect standard best practices or optimal design choices.
+Contributions and improvements are welcome!
+
+# LICENSE
+TODO
