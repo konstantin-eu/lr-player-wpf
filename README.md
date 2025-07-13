@@ -44,3 +44,7 @@ Contributions and improvements are welcome!
 
 # LICENSE
 TODO
+
+# Contact
+Feel free to reach out!
+Email: [langrepeater@gmail.com](mailto:langrepeater@gmail.com)
