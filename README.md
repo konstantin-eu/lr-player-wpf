@@ -5,8 +5,10 @@ Video player with subtitles support and following features:
 - rewind to next/prev subtitle
 
 # build
+visual studio 2022/intellij rider
 
 ## Brightness change
+Pixel Shader (HLSL code)
 from win command line cmd
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x86\fxc.exe" /T ps_2_0 /E main /Fo Resources/BrightnessShader.ps BrightnessShader.fx
 
@@ -34,16 +36,13 @@ Channels: Stereo
 Sample rate: 48000 Hz
 Bits per sample: 32
 
-# app screenshots and video
-TODO
+# app screenshots
+[screenshots/lr-player-wpf_screenshot_1.png](screenshots/lr-player-wpf_screenshot_1.png)
 
 # Note on Code Generation
 Parts of this project were programmed with the assistance of a large language model (LLM).
 As such, some code may not reflect standard best practices or optimal design choices.
 Contributions and improvements are welcome!
-
-# LICENSE
-TODO
 
 # Contact
 Feel free to reach out!
